@@ -1,10 +1,12 @@
 name: Bootstrap Gradle Wrapper
 on: 
-  workflow_dispatch: # This adds the "Run workflow" button in your Actions tab
+  workflow_dispatch:
 
 jobs:
   generate-wrapper:
     runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
       - name: Checkout the Scriptorium
         uses: actions/checkout@v4
@@ -17,17 +19,14 @@ jobs:
 
       - name: Generate the Gradle Wrapper
         run: |
-          # Uses the system's local Gradle to forge your project's wrapper
-          gradle wrapper --gradle-version 8.5
+          # The --project-dir . ensures it stays in the root
+          gradle wrapper --gradle-version 8.5 --project-dir .
 
-      - name: Cement the Wrapper in Repository
+      - name: Cement the Wrapper
         run: |
-          # Using the official GitHub Actions Bot identity for privacy
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          
-          # Adding the essential Gradle files to your main repository
           git add gradlew gradlew.bat gradle/
-          git commit -m "Forge: Cementing the Gradle Wrapper [Bot]"
+          git commit -m "Forge: Cementing the Gradle Wrapper"
           git push
           
