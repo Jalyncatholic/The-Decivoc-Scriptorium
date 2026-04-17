@@ -1,0 +1,9 @@
+// This is the simplest possible blueprint to satisfy the Blacksmith
+plugins {
+    id 'com.android.application' version '8.2.0' apply false
+}
+
+repositories {
+    google()
+    mavenCentral()
+}
