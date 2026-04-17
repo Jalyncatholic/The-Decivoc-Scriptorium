@@ -65,15 +65,31 @@
             justify-content: space-between;
             align-items: center;
             border-top: 1px solid #3d2b1d;
+            gap: 10px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
         }
 
         button {
             background-color: var(--burnt-umber);
             color: var(--isabelline);
             border: 1px solid #a84a3a;
-            padding: 10px 20px;
+            padding: 10px 15px;
             font-weight: bold;
             font-family: 'Georgia', serif;
+            cursor: pointer;
+        }
+
+        button:active {
+            background-color: var(--espresso);
+        }
+
+        #nodeStatus {
+            color: var(--deep-gold);
+            font-weight: bold;
         }
     </style>
 </head>
@@ -88,9 +104,14 @@
     <textarea id="scribeArea" placeholder="Begin your work here..."></textarea>
 </div>
 
+<input type="file" id="scribeOpen" accept=".sdvc" style="display:none;" onchange="importSDVC(event)">
+
 <div class="controls">
-    <button onclick="downloadSDVC()">Forge .sdvc</button>
-    <span id="nodeStatus" style="color: var(--deep-gold);">Node 1.0</span>
+    <div class="btn-group">
+        <button onclick="document.getElementById('scribeOpen').click()">Open Scroll</button>
+        <button onclick="downloadSDVC()">Forge .sdvc</button>
+    </div>
+    <span id="nodeStatus">Node 1.0</span>
 </div>
 
 <script>
@@ -98,7 +119,7 @@
     const nodeStatus = document.getElementById('nodeStatus');
     let currentLevel = [1, 0];
 
-    // Starts the very first line
+    // Initialize first line
     scribeArea.value = "Node 1.0 ";
 
     scribeArea.addEventListener('keydown', function(e) {
@@ -107,17 +128,16 @@
             const lines = scribeArea.value.split('\n');
             const lastLine = lines[lines.length - 1];
 
-            // If the last word was 'Enter', go deeper (e.g. 1.0.1)
             if (lastLine.trim().endsWith('Enter')) {
                 currentLevel.push(1);
             } else {
-                // Otherwise increment the current level (e.g. 1.1)
                 currentLevel[currentLevel.length - 1]++;
             }
 
             const nodeStr = currentLevel.join('.');
             scribeArea.value += "\nNode " + nodeStr + " ";
             nodeStatus.innerText = "Node " + nodeStr;
+            scribeArea.scrollTop = scribeArea.scrollHeight;
         }
 
         // Backspace Method: Snaps back a level
@@ -138,11 +158,45 @@
         }
     });
 
+    // Opening an existing .sdvc file
+    function importSDVC(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            scribeArea.value = e.target.result;
+            // Recalculate node level from the last line of the imported file
+            const lines = e.target.result.trim().split('\n');
+            const lastLine = lines[lines.length - 1];
+            const match = lastLine.match(/Node ([\d.]+)/);
+            if (match) {
+                currentLevel = match[1].split('.').map(Number);
+                nodeStatus.innerText = "Node " + match[1];
+            }
+        };
+        reader.readAsText(file);
+    }
+
+    // Saving the scroll to your device
     function downloadSDVC() {
         const text = scribeArea.value;
         const blob = new Blob([text], { type: 'text/plain' });
         const anchor = document.createElement('a');
         anchor.download = 'script.sdvc';
+        anchor.href = window.URL.createObjectURL(blob);
+        anchor.click();
+        
+        // Visual confirmation for high-luminance feedback
+        nodeStatus.innerText = "Scroll Sealed";
+        setTimeout(() => {
+            nodeStatus.innerText = "Node " + currentLevel.join('.');
+        }, 2000);
+    }
+</script>
+</body>
+</html>
+anchor.download = 'script.sdvc';
         anchor.href = window.URL.createObjectURL(blob);
         anchor.click();
     }
